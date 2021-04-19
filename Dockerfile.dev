@@ -1,0 +1,65 @@
+# NOTI rapi
+# Version: 1.0
+
+# pull official base image
+FROM python:3.8.3-alpine
+
+# extra metadata
+LABEL version="1.0"
+LABEL description="Image for NOTI."
+LABEL author="Author Name"
+
+# set work directory
+WORKDIR /usr/src/app
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# install psycopg2 dependencies
+RUN apk update \
+    && apk add postgresql-dev gcc python3-dev musl-dev
+
+# # install psycopg2
+# RUN apk update \
+#     && apk add --virtual build-deps gcc python3-dev musl-dev \
+#     && apk add postgresql \
+#     && apk add postgresql-dev \
+#     && pip install psycopg2 \
+#     && apk del build-deps \
+#     && apk add jpeg-dev \
+#     && apk add libjpeg \
+#     && apk add zlib-dev
+
+# install Pillow
+# RUN apk add --no-cache jpeg-dev zlib-dev
+# RUN apk add --no-cache --virtual .build-deps build-base linux-headers \
+#     && pip install Pillow==7.1.2
+
+# RUN apk add --no-cache netcat-openbsd
+
+# install dependencies
+RUN pip install --upgrade pip
+COPY ./requirements.txt .
+RUN pip install -r requirements.txt
+
+# copy entrypoint.sh
+COPY ./entrypoint.dev.sh .
+
+# copy project
+COPY . .
+
+RUN mv wait-for /bin/wait-for
+
+# Add wait-for-it
+# RUN chmod +x wait-for-it.sh
+# RUN mv wait-for-it.sh /bin/wait-for-it.sh
+
+# Remove dependencies only required for psycopg2 build
+# RUN apk del .build-deps
+
+RUN echo $PWD
+RUN ls -la
+
+# run entrypoint.sh
+ENTRYPOINT ["/usr/src/app/entrypoint.dev.sh"]
